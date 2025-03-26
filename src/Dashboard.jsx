@@ -6,46 +6,15 @@ import NewTopic from "./newTopic"
 import { isTokenExpired } from "./tokenChecker";
 import { useNavigate } from "react-router";
 
+const BackendURL = import.meta.env.VITE_BACKEND_URL
+
 const getFormattedDate = () => {
     const options = { weekday: "long", day: "numeric", month: "long" };
     return new Date().toLocaleDateString("en-GB", options);
 };
 
-const topics = [
-    {
-        name: "Study",
-        num: 12,
-    },
-    {
-        name: "Sports",
-        num: 9,
-    },
-    {
-        name: "Projects",
-        num: 3,
-    }
-]
 
-// const tasks = [
-//     {
-//         name: "Study Math",
-//         topic : "Study",
-//         expiry: "27/8/2026",
-//         status: false
-//     },
-//     {
-//         name: "Play BasketBall",
-//         topic : "Sports",
-//         expiry: "2/2/2026",
-//         status: false
-//     },
-//     {
-//         name: "Build A website",
-//         topic : "Projects",
-//         expiry: "22/5/2026",
-//         status: true
-//     },
-// ]
+
 
 function Dashboard() {
 
@@ -66,10 +35,10 @@ function Dashboard() {
 
         const refreshToken = localStorage.getItem("refresh_token")
 
-        const response = await fetch("http://127.0.0.1:8000/token/refresh/", {
+        const response = await fetch(`${BackendURL}/api/token/refresh/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refreshToken }),
+            body: JSON.stringify({ "refresh":refreshToken }),
         });
 
         if (!response.ok) {
@@ -79,7 +48,11 @@ function Dashboard() {
             return null;
         }
 
+
         const data = await response.json();
+
+        console.log("refreshed Successfull : " , data.access )
+
         localStorage.setItem("access", data.access);
         return data.access;
     }
@@ -89,10 +62,10 @@ function Dashboard() {
         const refreshToken = localStorage.getItem("refresh_token")
 
         if(isTokenExpired(accessToken)){
-            accessToken = refreshTokenFunc();
+            accessToken = await refreshTokenFunc();
         }
 
-        const response = await fetch("http://127.0.0.1:8000/tasks" , {
+        const response = await fetch(`${BackendURL}/tasks` , {
             method: "GET",
             headers: {
                 "Content-Type" : "application",
@@ -119,10 +92,10 @@ function Dashboard() {
             accessToken = refreshTokenFunc();
         }
 
-        const response = await fetch("http://127.0.0.1:8000/topics" , {
+        const response = await fetch(`${BackendURL}/topics` , {
             method: "GET",
             headers: {
-                "Content-Type" : "application",
+                "Content-Type" : "application/json",
                 "Authorization": `Bearer ${accessToken}`
             }
         })
@@ -138,6 +111,39 @@ function Dashboard() {
 
     }
 
+    async function toggleTask(id){
+        let accessToken = localStorage.getItem("access_token")
+        let refreshToken = localStorage.getItem("refresh_token")
+
+        if(isTokenExpired(accessToken)){
+            accessToken = await refreshTokenFunc();
+        }
+
+        const response = await fetch(`${BackendURL}/toggle/${id}/` , {
+            method: "POST",
+            headers: {
+                "Content-Type" : "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+        })
+
+        if(!response.ok){
+            console.error("toggle error : " , response.status , response.statusText);
+            return
+        }
+
+        const data = await response.json()
+
+        setTasks(data);
+
+    }
+
+    function logout(){
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token" );
+        Navigate("/");
+    }
+
     useEffect(() => {
         setToday(getFormattedDate());
         fetchTasks()
@@ -149,8 +155,14 @@ function Dashboard() {
 
     return (
     <>
+        {/* logout button */}
+        <div className="absolute top-10 right-10 p-2 text-white font-bold cursor-pointer rounded-full bg-primary" onClick={logout}>
+            Logout
+        </div>
+
+
         {isNewTask ? <NewTask exitFunc={setIsNewTask} setTasks={setTasks} tokenRefresher={refreshTokenFunc} topics={topics}/> : ""}
-        {isNewTopic ? <NewTopic exitFunc={setIsNewTopic} /> : ""}
+        {isNewTopic ? <NewTopic exitFunc={setIsNewTopic} setTopics={setTopics} tokenrefresher={refreshTokenFunc}/> : ""}
         <div className={`min-h-screen bg-shadow `}>
 
             {/* The New Task Pop Up */}
@@ -184,7 +196,6 @@ function Dashboard() {
                 {
                     tasks.map((item) => {
                         if(!((item.topic && item.topic.name == topic) || topic == 0)) {
-                            console.log(item.name , topic)
                             return null;
                         }
                         return (
@@ -194,7 +205,7 @@ function Dashboard() {
                                         <h1 className="text-3xl text-primary font-bold">{item.name}</h1>
                                         <h1 className="text-background">{item.topic ? item.topic.name : "None"}</h1>
                                     </div>
-                                    <div className=" rounded-sm border-2 border-black">
+                                    <div className=" rounded-sm border-2 border-black cursor-pointer" onClick={e => toggleTask(item.id)}>
                                         {item.status ? <BiCheck className="text-green text-5xl"/> : <BiCheck className="text-green opacity-0 text-5xl hover:opacity-60 cursor-pointer duration-150"/>}
                                     </div>
                                 </div>

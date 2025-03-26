@@ -2,8 +2,12 @@ import { FaTimes } from "react-icons/fa";
 /* eslint-disable */
 import React , {useState , useEffect} from 'react';
 import Alert from './errorMessage.jsx';
+import { isTokenExpired } from "./tokenChecker.js";
 
-function NewTopic({exitFunc}) {
+const BackendURL = import.meta.env.VITE_BACKEND_URL
+
+
+function NewTopic({exitFunc , setTopics , tokenrefresher}) {
 
     const [newTopicName , setNewTopicName] = useState(null)
 
@@ -11,15 +15,47 @@ function NewTopic({exitFunc}) {
     const [errorName , setErrorName] = useState(false)
 
 
-    function create(){
+    async function create(){
         if(newTopicName == null || newTopicName.length == 0){
             setErrorName(true);
             setTimeout(() => {
                 setErrorName(false)
             } , 1000)
+            return;
         }
 
+        let access_token = localStorage.getItem("access_token");
+        let refresh_token = localStorage.getItem("refresh_token");
+
+        if(isTokenExpired(access_token)){
+            access_token = tokenrefresher();
+            localStorage.setItem("access_token" , access_token);
+        }
+
+        const response = await fetch(`${BackendURL}/topics/` , {
+            method: "POST" ,
+            headers: {
+                "Content-Type" : "application/json",
+                "Authorization": `Bearer ${access_token}`
+            },
+            body: JSON.stringify({name: newTopicName})
+        })
+
+        if(!response.ok){
+            console.error("error creating : " , response.status)
+            return;
+        }
+
+
+        const data = await response.json();
+
+        setTopics(data)
+
+        exitFunc(false)
+
     }
+
+
 
 
 

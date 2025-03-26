@@ -3,6 +3,9 @@ import React , {useState} from 'react';
 import GoogleLoginButton from './GoogleLogin';
 import { useNavigate } from 'react-router';
 
+const BackendURL = import.meta.env.VITE_BACKEND_URL
+
+
 function Register() {
 
     const Navigate = useNavigate()
@@ -29,7 +32,7 @@ function Register() {
                 return
             }
 
-            const response = await fetch("http://127.0.0.1:8000/api/token/" ,{
+            const response = await fetch(`${BackendURL}/api/token/` ,{
                 method: "POST",
                 headers: {"Content-Type" : "application/json"},
                 body: JSON.stringify({ username:username , password:password})
@@ -64,7 +67,7 @@ function Register() {
                 return
             }
 
-            const response = await fetch("http://127.0.0.1:8000/register/" , {
+            const response = await fetch(`${BackendURL}/register/` , {
                 method:"POST",
                 headers: {"Content-Type" : "application/json"},
                 body: JSON.stringify({username:username , email:email, password:password})

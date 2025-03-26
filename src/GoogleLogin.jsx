@@ -1,13 +1,15 @@
 /* eslint-disable */
-import React from 'react';
+import React , {useEffect} from 'react';
 import { GoogleOAuthProvider ,GoogleLogin } from "@react-oauth/google"
 
-const CLIENT_ID = "441640127193-68e3tk5smeclt6esno0s311ptlrb1hs1.apps.googleusercontent.com"
+const CLIENT_ID = import.meta.env.VITE_CLIENT_ID
 
 function GoogleLoginButton({ onLoginSuccess }) {
 
 
-
+    useEffect((item) => {
+        console.log(CLIENT_ID)
+    })
 
     return (
     <>

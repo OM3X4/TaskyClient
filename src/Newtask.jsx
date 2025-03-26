@@ -5,6 +5,9 @@ import DropDown from './dropDown.jsx'
 import Alert from './errorMessage.jsx';
 import { isTokenExpired } from "./tokenChecker.js";
 
+const BackendURL = import.meta.env.VITE_BACKEND_URL
+
+
 function NewTask({exitFunc , setTasks , tokenRefresher , topics}) {
 
     const [newTaskTopic , setNewTaskTopic] = useState(null)
@@ -37,13 +40,21 @@ function NewTask({exitFunc , setTasks , tokenRefresher , topics}) {
         if(isTokenExpired(access_token)){
             access_token = await tokenRefresher()
         }
-        const response = await fetch("http://127.0.0.1:8000/tasks/" , {
+
+        let body = {name: newTaskName , expire:newTaskDate};
+        if(newTaskTopic){
+            body.topic_id = newTaskTopic;
+        }
+
+        console.log(body)
+
+        const response = await fetch(`${BackendURL}/tasks/` , {
             method: "POST",
             headers: {
                 "Content-Type" : "application/json",
                 "Authorization": `Bearer ${access_token}`
             },
-            body: JSON.stringify({name: newTaskName , expire: newTaskDate , topic_id: newTaskTopic})
+            body: JSON.stringify(body)
         })
 
         if(!response.ok){

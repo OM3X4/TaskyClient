@@ -3,13 +3,11 @@ import React , {useEffect} from 'react';
 import { GoogleOAuthProvider ,GoogleLogin } from "@react-oauth/google"
 
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID
+const BackendURL = import.meta.env.VITE_BACKEND_URL
+
 
 function GoogleLoginButton({ onLoginSuccess }) {
 
-
-    useEffect((item) => {
-        console.log(CLIENT_ID)
-    })
 
     return (
     <>
@@ -27,7 +25,7 @@ function GoogleLoginButton({ onLoginSuccess }) {
                         const token = response.credential;
 
                         // send the token to django
-                        fetch("http://127.0.0.1:8000/auth/google/" ,
+                        fetch(`${BackendURL}/auth/google/` ,
                             {
                                 method: "POST",
                                 headers: {"Content-Type":"application/json"},

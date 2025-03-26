@@ -51,7 +51,6 @@ function Dashboard() {
 
         const data = await response.json();
 
-        console.log("refreshed Successfull : " , data.access )
 
         localStorage.setItem("access", data.access);
         return data.access;

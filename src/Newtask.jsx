@@ -46,7 +46,6 @@ function NewTask({exitFunc , setTasks , tokenRefresher , topics}) {
             body.topic_id = newTaskTopic;
         }
 
-        console.log(body)
 
         const response = await fetch(`${BackendURL}/tasks/` , {
             method: "POST",
@@ -68,9 +67,6 @@ function NewTask({exitFunc , setTasks , tokenRefresher , topics}) {
     }
 
 
-    useEffect((item) => {
-        console.log(newTaskTopic)
-    })
 
 
     return (

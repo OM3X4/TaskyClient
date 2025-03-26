@@ -79,7 +79,6 @@ function Register() {
 
             const data = await response.json()
 
-            console.log("sign up successfully" , data)
 
             localStorage.setItem("access_token", data.access);
             localStorage.setItem("refresh_token", data.refresh);

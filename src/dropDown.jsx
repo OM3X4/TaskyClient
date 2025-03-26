@@ -20,7 +20,7 @@ export default function DropDown({ options, setChoice }) {
                         <MenuItem key={index}>
                             {({ active }) => (
                                 <button
-                                    onClick={() => setChoice(option.name)}
+                                    onClick={() => setChoice(option.id)}
                                     className={`block w-full px-4 py-2 text-left text-sm text-gray-700 ${active ? 'bg-gray-100 text-gray-900' : ''}`}
                                 >
                                     {option.name}

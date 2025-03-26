@@ -3,8 +3,9 @@ import { FaTimes } from "react-icons/fa";
 import React , {useState , useEffect} from 'react';
 import DropDown from './dropDown.jsx'
 import Alert from './errorMessage.jsx';
+import { isTokenExpired } from "./tokenChecker.js";
 
-function NewTask({exitFunc}) {
+function NewTask({exitFunc , setTasks , tokenRefresher , topics}) {
 
     const [newTaskTopic , setNewTaskTopic] = useState(null)
     const [newTaskName , setNewTaskName] = useState(null)
@@ -14,22 +15,51 @@ function NewTask({exitFunc}) {
     const [errorDate , setErrorDate] = useState(false)
 
 
-    function create(){
+    async function create(){
         if(newTaskName == null || newTaskName.length == 0){
             setErrorName(true);
             setTimeout(() => {
                 setErrorName(false)
             } , 1000)
+            return
         }
         else if(newTaskDate == null || newTaskDate.length == 0){
             setErrorDate(true);
             setTimeout(() => {
                 setErrorDate(false)
             } , 1000)
+            return
         }
-        console.log(newTaskDate)
+
+        let access_token = localStorage.getItem("access_token");
+        const refresh_token = localStorage.getItem("refresh_token");
+
+        if(isTokenExpired(access_token)){
+            access_token = await tokenRefresher()
+        }
+        const response = await fetch("http://127.0.0.1:8000/tasks/" , {
+            method: "POST",
+            headers: {
+                "Content-Type" : "application/json",
+                "Authorization": `Bearer ${access_token}`
+            },
+            body: JSON.stringify({name: newTaskName , expire: newTaskDate , topic_id: newTaskTopic})
+        })
+
+        if(!response.ok){
+            console.error("error creating a new task" , response.status);
+        }
+
+        const data = await response.json()
+
+        setTasks(data);
+        exitFunc(false);
     }
 
+
+    useEffect((item) => {
+        console.log(newTaskTopic)
+    })
 
 
     return (
@@ -61,7 +91,7 @@ function NewTask({exitFunc}) {
                             <div className='flex items-center justify-between my-5'>
                                 <h1>Topic</h1>
                                 <div>
-                                    <DropDown options={[{name:"Study"} , {name:"Projects"}]} setChoice={setNewTaskTopic}/>
+                                    <DropDown options={topics} setChoice={setNewTaskTopic}/>
                                 </div>
                             </div>
                             <div className='flex items-center justify-center gap-6 my-5'>
